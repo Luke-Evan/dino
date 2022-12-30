@@ -1,0 +1,17 @@
+
+4c:S959"Remove this #undef directive.(ÙÝÛ†ÿÿÿÿÿ
+R	cpp:S5028"8Replace this macro by "const", "constexpr" or an "enum".(éÂ ÿýÿÿÿÿ
+R	cpp:S5028"8Replace this macro by "const", "constexpr" or an "enum".(›”Ó¸ùÿÿÿÿ
+R	cpp:S5028"8Replace this macro by "const", "constexpr" or an "enum".(µß¶âüÿÿÿÿ
+M	cpp:S5028"8Replace this macro by "const", "constexpr" or an "enum".(åžµ½
+Zcpp:S959"ARemove this #undef directive that undefines a non-existing macro.(ÙÝÛ†ÿÿÿÿÿ
+C	cpp:S5421".Global Pointer should be const at every level.(Âø£Í
+C	cpp:S5421".Global Pointer should be const at every level.(¡ýˆ€
+C	cpp:S5421".Global Pointer should be const at every level.(ª´Ø„
+H	cpp:S5421".Global Pointer should be const at every level.(Ä‡¤ÿþÿÿÿÿ
+6	cpp:S5421"!Global variables should be const.(ô™×Ý
+H	cpp:S5421!".Global Pointer should be const at every level.(’ÀéÞúÿÿÿÿ
+C	cpp:S5421"".Global Pointer should be const at every level.(ÃŽæ¡
+H	cpp:S5421#".Global Pointer should be const at every level.(™—‡³üÿÿÿÿ
+;	cpp:S5421$"!Global variables should be const.(ã›Í•ùÿÿÿÿ
+;	cpp:S5421%"!Global variables should be const.(²ÍŽÔúÿÿÿÿ
