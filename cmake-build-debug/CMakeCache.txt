@@ -157,7 +157,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=Project
+CMAKE_PROJECT_NAME:STATIC=dino
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=C:/Users/Estrella/AppData/Local/JetBrains/Toolbox/apps/CLion/ch-0/223.8214.51/bin/mingw/bin/ranlib.exe
@@ -247,6 +247,15 @@ Project_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 Project_SOURCE_DIR:STATIC=D:/Codes/dino
+
+//Value Computed by CMake
+dino_BINARY_DIR:STATIC=D:/Codes/dino/cmake-build-debug
+
+//Value Computed by CMake
+dino_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+dino_SOURCE_DIR:STATIC=D:/Codes/dino
 
 
 ########################

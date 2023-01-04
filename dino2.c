@@ -5,7 +5,6 @@ int main() {
     load_res();
     printf("before main_event\n");//测试
     while (SDL_WaitEvent(&main_event)) {
-        printf("1");//测试
         start_UI();
         switch (main_event.type) {
             case SDL_QUIT:
@@ -13,43 +12,46 @@ int main() {
                 return 0;
             case SDL_KEYDOWN:
                 switch (main_event.key.keysym.sym) {
-                    case SDLK_ESCAPE:free_quit();
+                    case SDLK_ESCAPE:
+                        free_quit();
                         return 0;
                     case SDLK_RETURN:
                         printf("before play_UI\n");//测试用，可删
-                        if (play_UI()) {
+                        if (play_UI()){
+                            printf("after play_UI\n");//测试用，可删
                             return 0;
                         }
-                        printf("after play_UI\n");//测试用，可删
-                        break;
                     default:break;
                 }
                 break;
-            case SDL_MOUSEBUTTONDOWN:printf("(%d,%d)\n", main_event.button.x, main_event.button.y);
+            case SDL_MOUSEBUTTONDOWN:
+                printf("(%d,%d)\n", main_event.button.x, main_event.button.y);
                 break;
             default:break;
         }
     }
-    free_quit();
     return 0;
 }
-
 void init() {
     SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);//忽视鼠标带来的事件处理与内存占用
     SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
     SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_AUDIO);
     TTF_Init();
     Window =SDL_CreateWindow("dino", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);//创建窗口
     Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_ACCELERATED);//创建渲染器
-    font_digit = TTF_OpenFont("fonts/digit.ttf", 400);//初始化字体
-    font_cartoon = TTF_OpenFont("fonts/cartoon.ttf", 400);
+    Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 4096);
 }
 void load_res(){
+    //字体
+    font_digit = TTF_OpenFont("fonts/digit.ttf", 400);
+    font_cartoon = TTF_OpenFont("fonts/cartoon.ttf", 400);
+    //图片
     start_surface[0] = TTF_RenderUTF8_Blended(font_cartoon, "Are You Ready ?", font_color0);
     start_surface[1] = TTF_RenderUTF8_Blended(font_cartoon, "Please Press ''ENTER'' to start", font_color1);
     ground_surface = IMG_Load("images/ground.png");
     cloud_surface = IMG_Load("images/cloud.png");//云
-    dino_surface= IMG_Load("images/zong.png");
+    dino_surface= IMG_Load("images/res.png");
     bird_surface[0] = IMG_Load("images/bird_0.png");
     bird_surface[1] = IMG_Load("images/bird_1.png");
     time_surface0 = TTF_RenderUTF8_Blended(font_cartoon, "TIME :", font_color2);//time是白色
@@ -57,15 +59,19 @@ void load_res(){
     cactus_surface[0] = IMG_Load("images/cac_0.png");
     cactus_surface[1] = IMG_Load("images/cac_1.png");
     cactus_surface[2] = IMG_Load("images/cac_2.png");
-    over_surface[0]= IMG_Load("images/gameover.png");
+    over_surface[0]= IMG_Load("images/game_over.png");
     over_surface[1]= IMG_Load("images/restart.png");
-
+    invincible= IMG_Load("images/heart.png");
     for (int i = 0; i < 5; i++) {
         dino_src[i]=(SDL_Rect){848+i*44,2,44,47};
     }
     for (int i = 5; i < 7; i++) {
         dino_src[i]=(SDL_Rect){1112+(i-5)*59,19,59,30};
     }
+    //音频
+    bgm= Mix_LoadMUS("sounds/Subway_Surfers.ogg");
+    game_over= Mix_LoadWAV("sounds/game_over.wav");
+    jump= Mix_LoadWAV("sounds/jump.wav");
 }
 void start_UI() {
     SDL_Texture *start_texture[2] = {NULL};
@@ -91,14 +97,16 @@ void start_UI() {
 }
 int play_UI() {
     play_start_time= time(NULL);
-    printf("in play_UI and before play_event\n");
+    printf("play_start_time: %lld\n",play_start_time);
+    Mix_PlayMusic(bgm,-1);
+    printf("in play_UI and before play_event\n");//测试
     while (1) {
-        global_count++;
         long begin = (long) SDL_GetTicks();
-        SDL_RenderClear(Renderer);
-        print_play();
-        check_die();
         srand(global_count);
+        global_count++;
+        SDL_RenderClear(Renderer);
+        check_die();
+        check_music();
         while (SDL_PollEvent(&play_event)) {
             switch (play_event.type) {
                 case SDL_QUIT:
@@ -106,15 +114,28 @@ int play_UI() {
                     return 1;
                 case SDL_KEYDOWN:
                     switch (play_event.key.keysym.sym) {
-                        case SDLK_w:
+                        case SDLK_ESCAPE:
+                            free_quit();
+                            return 1;
                         case SDLK_UP:
                             if (if_jump==0){
                                 if_jump=1;
+                                Mix_PlayChannel(-1,jump,0);
                             }
                             break;
-                        case SDLK_s:
                         case SDLK_DOWN:
                             if_down=1;
+                            break;
+                        case SDLK_SPACE:
+                            if (if_pause==0){
+                                if (if_pause_trigger==0){
+                                    if_pause_trigger=1;
+                                }
+                            } else{
+                                if (if_pause_end==0){
+                                    if_pause_end=1;
+                                }
+                            }
                             break;
                         default:break;
                     }
@@ -122,7 +143,6 @@ int play_UI() {
                 case SDL_KEYUP:
                     switch (play_event.key.keysym.sym) {
                         case SDLK_DOWN:
-                        case SDLK_s:
                             if_down=0;
                             break;
                         default:break;
@@ -140,6 +160,7 @@ int play_UI() {
             }
             break;
         }
+        print_play();
         //控制帧频
         long current = (long) SDL_GetTicks();
         long cost = current - begin;
@@ -161,17 +182,45 @@ void over_UI(){
 }
 void restart(){
     if_die=0;
+    invin_start_time=0,if_invining=0,if_invin_able=0,old_num=0;
+
+    if_jump=0;
+    if_down=0;
+    jump_y=415;
+    jump_speed=init_jump;
+
     play_start_time= time(NULL);
     score=0;
-    bird_x=1500;
+
+    bird_x=init_bird;
     cactus_x=init_cac;
+    speed_ground=init_ground;
+
+    if( Mix_PausedMusic() == 1 )
+    {
+        Mix_ResumeMusic();
+    }
+}
+
+void check_music(){
+    if (if_die==1||if_pause==1){
+        if (Mix_PlayingMusic()!=0&&Mix_PausedMusic()!=1){//有音乐在播放且未被暂停
+            Mix_PauseMusic();
+        }
+    }
+    if (if_pause==0){
+        if( Mix_PausedMusic() == 1 )
+        {
+            Mix_ResumeMusic();
+        }
+    }
 }
 
 void print_play() {
-    update_speed();
+    update_speed();//无敌在里面
+    print_time();
     print_ground();
     print_cloud();
-    print_time();
     print_scores();
     print_cactus();
     print_bird();
@@ -179,10 +228,25 @@ void print_play() {
     if (if_die==1){
         over_UI();
     }
+    print_invin();
     SDL_RenderPresent(Renderer);
 }
 void update_speed(){
     speed_ground=init_ground+(score/interval)*2;
+    if (if_invin_able==0){
+        if (score/invin_interval_score>old_num){
+            old_num=score/invin_interval_score;
+            if_invin_able=1;
+        }
+    }
+}
+void print_invin(){
+    if (if_invining==1||if_invin_able==1) {
+        SDL_Texture *invin_texture = SDL_CreateTextureFromSurface(Renderer, invincible);
+        SDL_Rect invin_rect = {70, 580, 60, 60};
+        SDL_RenderCopy(Renderer, invin_texture, NULL, &invin_rect);
+        SDL_DestroyTexture(invin_texture);
+    }
 }
 void print_ground() {
     SDL_Texture *ground_texture = SDL_CreateTextureFromSurface(Renderer, ground_surface);
@@ -192,7 +256,7 @@ void print_ground() {
     SDL_Rect ground_rect = {ground_x, 500, 2048, 40};
     SDL_RenderCopy(Renderer, ground_texture, NULL, &ground_rect);
     SDL_DestroyTexture(ground_texture);
-    if (if_die==0){
+    if (if_die==0&&if_pause==0){
         ground_x-=speed_ground;
     }
 }
@@ -205,7 +269,7 @@ void print_cloud() {
     SDL_Rect cloud_rect = {cloud_x, 80, 2000, 250};
     SDL_RenderCopy(Renderer, cloud_texture, NULL, &cloud_rect);
     SDL_DestroyTexture(cloud_texture);
-    if (if_die==0) {
+    if (if_die==0&&if_pause==0) {
         cloud_x -= speed_cloud;
     }
 }
@@ -214,12 +278,26 @@ void print_time() {
     SDL_Rect time_rect0 = {650, 120, 100, 50};
     SDL_RenderCopy(Renderer, time_texture0, NULL, &time_rect0);
     SDL_DestroyTexture(time_texture0);
-    if (if_die==0){
-        play_end_time = time(NULL);
-        int DurSecond = (int) difftime(play_end_time, play_start_time);
-        sprintf(time_char, "%.2d:%.2d:%.2d", DurSecond / 3600, DurSecond / 60 % 60, DurSecond % 60);
+    if (if_die==0) {
+        if (if_pause_trigger == 1) {
+            if_pause = 1;
+            pause_start_time = time(NULL);
+            printf("pause_start_time:%lld\n",pause_start_time);
+            if_pause_trigger=0;
+        }
+        if (if_pause == 1) {
+            if (if_pause_end==1){
+                play_start_time += time(NULL)-pause_start_time;
+                if_pause=0;
+                if_pause_end=0;
+                printf("new play start time:%lld\n",play_start_time);
+            }
+        }else{
+            play_end_time = time(NULL);
+            int DurSecond = (int) difftime(play_end_time, play_start_time);
+            sprintf(time_char, "%.2d:%.2d:%.2d", DurSecond / 3600, DurSecond / 60 % 60, DurSecond % 60);
+        }
     }
-
     time_surface1 = TTF_RenderUTF8_Blended(font_digit, time_char, font_color1);
     SDL_Texture *time_texture1 = SDL_CreateTextureFromSurface(Renderer, time_surface1);
     SDL_Rect time_rect1 = {770, 120 , 140, 50};
@@ -236,7 +314,7 @@ void print_scores() {
     fp = fopen("best_score.txt", "r");
     fscanf(fp, "%05d", &best_score);
     fclose(fp);
-    if (if_die==0){
+    if (if_die==0&&if_pause==0){
         if (global_count % speed_score == 0) {
             score++;
         }
@@ -269,37 +347,40 @@ void print_cactus() {
     SDL_Texture *cactus_texture = SDL_CreateTextureFromSurface(Renderer, cactus_surface[cac_index]);
     SDL_RenderCopy(Renderer, cactus_texture, NULL, &cactus_rect);
     SDL_DestroyTexture(cactus_texture);
-    if (cactus_x<-65){
+    if (cactus_x<-80){
         cactus_x=init_cac;
         cac_index=rand()%3;
     }
-    if (if_die==0){
+    if (if_die==0&&if_pause==0){
         cactus_x-=speed_ground;
     }
 }
 void print_dino(){
-    if (if_jump==0&&if_down==0){//直立跑
-        print_run_dino0();
-    }
-    if(if_jump==1){//跳跃
-        if (jump_y>=415){
+    if (if_jump==0){
+        if (if_down==0){//直立跑
+            print_run_dino0();
+        }else if (if_down==1){//趴下跑
+            print_run_dino1();
+        }
+    }else if(if_jump==1){//跳跃
+        if (jump_y>415){
             if_jump=0;
             jump_speed=init_jump;
+            jump_y=415;
         }
         dino_jump();
-    }
-    if (if_down==1&&if_jump==0){//趴下
-        print_run_dino1();
+    }else{
+        printf("print_dino error\n");
     }
 }
 void print_run_dino0() {
     SDL_Texture *dino_texture= SDL_CreateTextureFromSurface(Renderer,dino_surface);
-    if (if_die==0){
+    if (if_die==0&&if_pause==0){
         if (dino_index0 > 3) {
             dino_index0 = 2;
         }
         SDL_RenderCopyF(Renderer, dino_texture, &dino_src[dino_index0], &dino_dest[0]);
-        if(global_count%speed_dino==0){
+        if(global_count%dino_change==0){
             dino_index0++;
         }
     } else{
@@ -311,9 +392,8 @@ void dino_jump(){
     const Uint8 *key_states = SDL_GetKeyboardState( NULL );
     SDL_Texture *dino_texture = SDL_CreateTextureFromSurface(Renderer, dino_surface);
     dino_rect= (SDL_FRect){10, jump_y, 100, 110};
-    if (if_die==0){
+    if (if_die==0&&if_pause==0){
         if (jump_speed<0&&key_states[SDL_SCANCODE_DOWN]){
-            printf("yes");
             jump_y-=jump_speed*2;
         }
         jump_speed-=GRAVITY;
@@ -326,12 +406,12 @@ void dino_jump(){
 }
 void print_run_dino1(){
     SDL_Texture *dino_texture= SDL_CreateTextureFromSurface(Renderer, dino_surface);
-    if (if_die==0){
+    if (if_die==0&&if_pause==0){
         if (dino_index1 > 6) {
             dino_index1 = 5;
         }
         SDL_RenderCopyF(Renderer, dino_texture, &dino_src[dino_index1], &dino_dest[1]);
-        if(global_count%speed_dino==0){
+        if(global_count%dino_change==0){
             dino_index1++;
         }
     }else{
@@ -345,14 +425,14 @@ void print_bird() {
     bird_texture[1] = SDL_CreateTextureFromSurface(Renderer, bird_surface[1]);
     bird_rect = (SDL_Rect){bird_x, 405, 80, 40};
     if (bird_x<=-80){
-        bird_x=bird_rand[rand()%2];
+        bird_x=cactus_x+bird_rand[rand()%3];
     }
-    if (if_die==0){
+    if (if_die==0&&if_pause==0){
         if (bird_index > 1) {
             bird_index = 0;
         }
         bird_x-=speed_ground;
-        if (global_count % speed_bird == 0) {
+        if (global_count % bird_change == 0) {
             bird_index++;
         }
     }
@@ -368,14 +448,23 @@ void check_die(){
         a+=check_collision(dino_rect,cactus_rect);
         a+=check_collision(dino_rect,bird_rect);
     } else if (if_down==1){//趴下时死
-        a+=check_collision(dino_rect,cactus_rect);
+        a+=check_collision(dino_dest[1],cactus_rect);
         a+=check_collision(dino_dest[1],bird_rect);
     }else{//直立时死
-        a+=check_collision(dino_rect,cactus_rect);
+        a+=check_collision(dino_dest[0],cactus_rect);
         a+=check_collision(dino_dest[0],bird_rect);
     }
     if (a>0){
-        if_die=1;
+        if(if_invin_able==1){
+            if_invin_able=0;
+            if_invining=1;
+            invin_start_time=(int)play_end_time;
+        } else if (if_invining==0){
+            if_die=1;
+        }
+    }
+    if (if_invining==1&&(time(NULL)==invin_start_time+invin_last_time)){
+        if_invining=0;
     }
 }
 int check_collision(SDL_FRect A,SDL_Rect B){
@@ -387,9 +476,11 @@ int check_collision(SDL_FRect A,SDL_Rect B){
     rightA = A.x + A.w;
     topA = A.y;
     bottomA = A.y + A.h;
-    if (A.h==dino_rect.h&&A.y==dino_rect.y){//跳跃中考虑尾巴
+    if (A.h==dino_rect.h&&A.y==dino_rect.y){//跳跃中考虑脚的前后空地
         leftA=A.x+30;
         rightA=A.x+70;
+    }else if (A.h==dino_dest[0].h&&A.y==dino_dest[0].y){//跳跃后起立考虑脑袋后方空地
+        leftA=A.x+55;
     }
     //计算矩形B的各边
     leftB = B.x+10;
@@ -408,7 +499,6 @@ void free_quit() {
     SDL_FreeSurface(cloud_surface);
     SDL_FreeSurface(time_surface0);
     SDL_FreeSurface(HI_surface);
-
     SDL_FreeSurface(dino_surface);
     for (int i = 0; i < 2; i++) {
         SDL_FreeSurface(start_surface[i]);
@@ -419,11 +509,18 @@ void free_quit() {
     for (int i = 0; i < 2; i++) {
         SDL_FreeSurface(bird_surface[i]);
     }
+    SDL_FreeSurface(invincible);
     TTF_CloseFont(font_digit);
     TTF_CloseFont(font_cartoon);
+    Mix_HaltMusic();
+    Mix_FreeMusic(bgm);
+    Mix_FreeChunk(game_over);
+    Mix_FreeChunk(jump);
+    Mix_Quit();
     SDL_DestroyRenderer(Renderer);
     SDL_DestroyWindow(Window);
     SDL_Quit();
+
 }
 
 
