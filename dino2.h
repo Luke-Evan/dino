@@ -91,15 +91,16 @@ static int speed_ground=15,init_ground=15,speed_cloud=3;//越大越快
 static int ground_x=0,cloud_x=0,cactus_x=1050;
 static int init_cac=1050,cac_index=0;
 static SDL_Rect cactus_rect ={0};
-//时间，分数相关
-static time_t play_start_time, play_end_time,pause_start_time,if_pause_trigger=0,if_pause_end=0;//时间管理
-static char time_char[12];
+//时间，分数,暂停相关
+static time_t play_start_time=0, play_end_time=0, pause_start_time=0;//时间管理
+static int if_pause_trigger=0,if_pause_end=0,music_for_pause=0,if_pause=0;//暂停相关
+static char time_char[12]={0};
 static int score = 0,best_score = 0,speed_score=3 ;//分数管理
 static FILE *fp=NULL;
-static char score_char[10], best_score_char[10];
+static char score_char[10]={0}, best_score_char[10]={0};
 static int interval=300;//加速区间
 //死亡相关
-static int if_die = 0,if_pause=0;//判断是否死亡
+static int if_die = 0;//判断是否死亡
 static SDL_Rect over_rect[2]={{290,250,420,85},{474,380,76,57}};
 
 

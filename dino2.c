@@ -97,7 +97,7 @@ void start_UI() {
 }
 int play_UI() {
     play_start_time= time(NULL);
-    printf("play_start_time: %lld\n",play_start_time);
+    printf("play_start_time: %lld\n",play_start_time);//测试
     Mix_PlayMusic(bgm,-1);
     printf("in play_UI and before play_event\n");//测试
     while (1) {
@@ -113,20 +113,19 @@ int play_UI() {
                     free_quit();
                     return 1;
                 case SDL_KEYDOWN:
-                    switch (play_event.key.keysym.sym) {
-                        case SDLK_ESCAPE:
+                    if (play_event.key.keysym.sym==SDLK_ESCAPE) {
                             free_quit();
                             return 1;
-                        case SDLK_UP:
-                            if (if_jump==0){
-                                if_jump=1;
-                                Mix_PlayChannel(-1,jump,0);
-                            }
-                            break;
-                        case SDLK_DOWN:
-                            if_down=1;
-                            break;
-                        case SDLK_SPACE:
+                    }else if (play_event.key.keysym.sym==SDLK_UP){
+                        if (if_jump==0){
+                            if_jump=1;
+                            Mix_PlayChannel(-1,jump,0);
+                        }
+                        break;
+                    }else if (play_event.key.keysym.sym==SDLK_DOWN){
+                        if_down=1;
+                        break;
+                    }else if (play_event.key.keysym.sym==SDLK_SPACE){
                             if (if_pause==0){
                                 if (if_pause_trigger==0){
                                     if_pause_trigger=1;
@@ -134,18 +133,15 @@ int play_UI() {
                             } else{
                                 if (if_pause_end==0){
                                     if_pause_end=1;
+                                    music_for_pause=1;
                                 }
                             }
                             break;
-                        default:break;
-                    }
-                    break;
+                    }else { break;}
                 case SDL_KEYUP:
-                    switch (play_event.key.keysym.sym) {
-                        case SDLK_DOWN:
-                            if_down=0;
-                            break;
-                        default:break;
+                    if(play_event.key.keysym.sym==SDLK_DOWN) {
+                        if_down=0;
+                        break;
                     }
                     break;
                 case SDL_MOUSEBUTTONDOWN:
@@ -160,7 +156,9 @@ int play_UI() {
             }
             break;
         }
+
         print_play();
+
         //控制帧频
         long current = (long) SDL_GetTicks();
         long cost = current - begin;
@@ -208,12 +206,13 @@ void check_music(){
             Mix_PauseMusic();
         }
     }
-    if (if_pause==0){
-        if( Mix_PausedMusic() == 1 )
-        {
+    if (music_for_pause==1){
+        if (Mix_PlayingMusic()!=0&&Mix_PausedMusic()==1){//有音乐在播放且已经被暂停
             Mix_ResumeMusic();
+            music_for_pause=0;
         }
     }
+
 }
 
 void print_play() {
@@ -282,7 +281,7 @@ void print_time() {
         if (if_pause_trigger == 1) {
             if_pause = 1;
             pause_start_time = time(NULL);
-            printf("pause_start_time:%lld\n",pause_start_time);
+            printf("pause_start_time:%lld\n",pause_start_time);//测试
             if_pause_trigger=0;
         }
         if (if_pause == 1) {
@@ -290,7 +289,7 @@ void print_time() {
                 play_start_time += time(NULL)-pause_start_time;
                 if_pause=0;
                 if_pause_end=0;
-                printf("new play start time:%lld\n",play_start_time);
+                printf("new play start time:%lld\n",play_start_time);//测试
             }
         }else{
             play_end_time = time(NULL);
@@ -428,13 +427,13 @@ void print_bird() {
         bird_x=cactus_x+bird_rand[rand()%3];
     }
     if (if_die==0&&if_pause==0){
+        if (global_count % bird_change == 0) {
+            bird_index++;
+        }
         if (bird_index > 1) {
             bird_index = 0;
         }
         bird_x-=speed_ground;
-        if (global_count % bird_change == 0) {
-            bird_index++;
-        }
     }
     SDL_RenderCopy(Renderer, bird_texture[bird_index], NULL, &bird_rect);
     for (int i = 0; i < 2; i++) {
@@ -460,7 +459,10 @@ void check_die(){
             if_invining=1;
             invin_start_time=(int)play_end_time;
         } else if (if_invining==0){
-            if_die=1;
+            if (if_die==0){
+                if_die=1;
+                Mix_PlayChannel(-1,game_over,0);
+            }
         }
     }
     if (if_invining==1&&(time(NULL)==invin_start_time+invin_last_time)){
