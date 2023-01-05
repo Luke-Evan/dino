@@ -19,6 +19,7 @@
 #define WIDTH 1024
 #define HEIGHT 720
 #define FRAMERATE 60
+#define DINO_X  40
 
 #undef main
 
@@ -78,7 +79,7 @@ static float GRAVITY =(float )1.1;//跳跃管理
 static float jump_y=415,init_jump=20,jump_speed=20;
 static int if_jump=0,if_down=0;
 static SDL_FRect dino_rect={0};//跳跃的框
-static SDL_FRect dino_dest[2] = {{10, 415, 100, 110},{10, 455, 120, 70}};//0是直立，1是趴下
+static SDL_FRect dino_dest[2] = {{DINO_X, 415, 100, 100},{DINO_X, 455, 120, 70}};//0是直立，1是趴下
 static SDL_Rect dino_src[7]={0};
 //无敌相关
 static int invin_start_time=0,if_invining=0,if_invin_able=0;

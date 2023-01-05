@@ -3,7 +3,7 @@
 int main() {
     init();
     load_res();
-    printf("before main_event\n");//测试
+    //printf("before main_event\n");//测试
     while (SDL_WaitEvent(&main_event)) {
         start_UI();
         switch (main_event.type) {
@@ -16,17 +16,17 @@ int main() {
                         free_quit();
                         return 0;
                     case SDLK_RETURN:
-                        printf("before play_UI\n");//测试用，可删
+                        //printf("before play_UI\n");//测试用，可删
                         if (play_UI()){
-                            printf("after play_UI\n");//测试用，可删
+                            //printf("after play_UI\n");//测试用，可删
                             return 0;
                         }
                     default:break;
                 }
                 break;
-            case SDL_MOUSEBUTTONDOWN:
-                printf("(%d,%d)\n", main_event.button.x, main_event.button.y);
-                break;
+//            case SDL_MOUSEBUTTONDOWN:
+//                printf("(%d,%d)\n", main_event.button.x, main_event.button.y);
+//                break;
             default:break;
         }
     }
@@ -97,9 +97,9 @@ void start_UI() {
 }
 int play_UI() {
     play_start_time= time(NULL);
-    printf("play_start_time: %lld\n",play_start_time);//测试
+    //printf("play_start_time: %lld\n",play_start_time);//测试
     Mix_PlayMusic(bgm,-1);
-    printf("in play_UI and before play_event\n");//测试
+    //printf("in play_UI and before play_event\n");//测试
     while (1) {
         long begin = (long) SDL_GetTicks();
         srand(global_count);
@@ -145,7 +145,7 @@ int play_UI() {
                     }
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    printf("(%d,%d)\n", play_event.button.x, play_event.button.y);
+                    //printf("(%d,%d)\n", play_event.button.x, play_event.button.y);
                     if (if_die==1){
                         if (play_event.button.x>=over_rect[1].x &&play_event.button.x<=(over_rect[1].x+over_rect[1].w) &&play_event.button.y>=over_rect[1].y &&play_event.button.y<=(over_rect[1].y+over_rect[1].h)){
                             restart();
@@ -281,7 +281,7 @@ void print_time() {
         if (if_pause_trigger == 1) {
             if_pause = 1;
             pause_start_time = time(NULL);
-            printf("pause_start_time:%lld\n",pause_start_time);//测试
+            //printf("pause_start_time:%lld\n",pause_start_time);//测试
             if_pause_trigger=0;
         }
         if (if_pause == 1) {
@@ -289,7 +289,7 @@ void print_time() {
                 play_start_time += time(NULL)-pause_start_time;
                 if_pause=0;
                 if_pause_end=0;
-                printf("new play start time:%lld\n",play_start_time);//测试
+                //printf("new play start time:%lld\n",play_start_time);//测试
             }
         }else{
             play_end_time = time(NULL);
@@ -369,7 +369,7 @@ void print_dino(){
         }
         dino_jump();
     }else{
-        printf("print_dino error\n");
+        //printf("print_dino error\n");
     }
 }
 void print_run_dino0() {
@@ -390,10 +390,10 @@ void print_run_dino0() {
 void dino_jump(){
     const Uint8 *key_states = SDL_GetKeyboardState( NULL );
     SDL_Texture *dino_texture = SDL_CreateTextureFromSurface(Renderer, dino_surface);
-    dino_rect= (SDL_FRect){10, jump_y, 100, 110};
+    dino_rect= (SDL_FRect){DINO_X, jump_y, 100, 110};
     if (if_die==0&&if_pause==0){
         if (jump_speed<0&&key_states[SDL_SCANCODE_DOWN]){
-            jump_y-=jump_speed*2;
+            jump_y-=jump_speed*3;
         }
         jump_speed-=GRAVITY;
         jump_y-=jump_speed;
